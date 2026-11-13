@@ -41,6 +41,7 @@ Skill instructions and format reference live in [`lecture-board/SKILL.md`](lectu
 
 - Pre-rendered voice track for finalized scripts using a local TTS model (such as Kokoro or similar), alongside the browser's live Web Speech synthesis used while drafting.
 - In-page feedback box to record quick review notes on the current slide or step while watching.
+- Repurposing skill to create lecture-board on any subjects.
 
 ## License
 
