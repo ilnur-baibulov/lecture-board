@@ -1,8 +1,8 @@
 """The readable script format of a lecture-board explainer (.md) <-> the scene object the engine plays.
 
 parse(text) -> scene dict;  dump(scene) -> text.  Python 3 stdlib only.
-CLI:  mdscript.py check NAME.md   (mechanical problems; with voice, also TeX the voice cannot read)
-      mdscript.py voice NAME.md   (the spoken text, step by step)
+CLI:  mdscript.py check NAME.md         (mechanical problems; with voice, also unreadable TeX and Say/Voice drift)
+      mdscript.py voice NAME.md [--say] (the spoken text, step by step; --say prints Say: above each Voice:)
 
 Script layout
 -------------
@@ -51,6 +51,7 @@ In any script, 'Ask:' in place of 'Say:' makes a question, with 'Answer:', 'Hint
 (references/script-format.md, Questions). '## Heading' inside a slide starts a stage; 'Say if key=value …:' gives the sentence for a state of the
 figures, and {{name}} in Say is filled from the figures' state and their text(s).
 """
+from collections import Counter
 import re
 
 COLOR = {'c1': 'blue', 'c2': 'violet', 'acc': 'yellow', 'dim': 'dim', 'ink': 'ink', 'warn': 'red'}
@@ -619,6 +620,66 @@ def voice_text(v):
 
 
 # ---------------------------------------------------------------- mechanical checks for the editor pass
+_STRONG_CONNECTIVES = {
+    'therefore', 'hence', 'thus', 'so', 'however', 'moreover', 'indeed',
+    'precisely', 'consequently', 'instead', 'nevertheless', 'meanwhile',
+    'accordingly', 'otherwise', 'specifically', 'namely', 'conversely',
+    'furthermore', 'not', 'nor', 'never', 'neither', 'only',
+    'поэтому', 'следовательно', 'значит', 'однако', 'именно',
+    'напротив', 'наоборот', 'причём', 'лишь', 'ведь', 'не', 'ни',
+    'никогда', 'только',
+}
+_GLUE_WORDS = {
+    'a', 'an', 'the', 'of', 'in', 'on', 'at', 'to', 'by', 'as', 'is', 'are',
+    'be', 'was', 'were', 'am', 'with', 'from', 'for', 'into', 'onto', 'upon',
+    'over', 'that', 'this', 'these', 'those', 'which', 'and', 'or', 'if',
+    'then', 'it', 'its', 'we', 'us', 'our', 'can', 'may', 'will', 'must',
+    'в', 'на', 'к', 'с', 'со', 'и', 'или', 'по', 'из', 'за', 'от', 'до',
+    'при', 'о', 'об', 'как', 'что', 'где', 'для', 'это', 'то', 'же', 'бы',
+}
+
+
+def _say_prose_words(s):
+    """Extract non-math prose words from a Say string, normalizing speech substitutions."""
+    s = re.sub(r'<<([^|]+?)\|[\s\S]+?>>', r'\1', s)
+    s = re.sub(r'\[\[eq:[^\]]+\]\]', ' ', s)
+    s = re.sub(r'\[\[([^|\]]+\|)?([^\]]+)\]\]', r'\2', s)
+    s = re.sub(r'\{\{[^}]+\}\}', ' ', s)
+    s = re.sub(r"\$[^$]*\$(?:-(?:th|st|nd|rd)\b|'s\b)?", ' ', s)
+    s = re.sub(r'\b[A-Z][A-Za-z]{0,3}\([^)]*\)', ' ', s)
+    s = s.replace('&nbsp;', ' ').replace('—', ' ').replace('–', ' ').replace('-', ' ')
+    out = []
+    for raw in re.findall(r"[A-Za-zА-Яа-яЁё']+", s):
+        w = raw.strip("'")
+        if not w: continue
+        if w == 'Lie': w = 'lee'
+        elif w == "Lie's": w = "lee's"
+        out.append(w.lower())
+    return out
+
+
+def _voice_prose_words(v):
+    """Extract words from a rendered Voice string after stripping pauses and cues."""
+    v = v.replace('|', ' ').replace('^', ' ').replace('—', ' ').replace('–', ' ').replace('-', ' ')
+    return [w.strip("'").lower() for w in re.findall(r"[A-Za-zА-Яа-яЁё']+", v) if w.strip("'")]
+
+
+def voice_drift(say, voice):
+    """Return Say prose words missing from Voice when a connective/negation or 2+ content words drop."""
+    sw, vw = _say_prose_words(say), _voice_prose_words(voice)
+    diff, vset = Counter(sw) - Counter(vw), set(vw)
+    rem = []
+    for w, cnt in diff.items():
+        if w.isascii() and ((w.endswith('s') and w[:-1] in vset) or (w + 's' in vset)):
+            continue
+        rem.extend([w] * cnt)
+    strong = [w for w in rem if w in _STRONG_CONNECTIVES]
+    content = [w for w in rem if w not in _GLUE_WORDS and len(w) >= 3]
+    if strong or len(content) >= 2:
+        return list(dict.fromkeys(strong + content))
+    return []
+
+
 def check(S):
     """Problems a script can have regardless of wording: cue counts, unknown ids, empty steps."""
     out, live = [], set()
@@ -658,6 +719,8 @@ def check(S):
                 said = st['voice']
                 if re.search(r'[\\{}_]|\bof \d', said.replace('^', '')):   # '^' left in a Voice is a cue
                     out.append(f'{where}: the voice will say "{said[:90]}" — write the formula so it reads aloud')
+                if not st.get('sayIf') and (miss := voice_drift(st['say'], said)):
+                    out.append(f'{where}: Voice drops from Say ({", ".join(miss[:6])}) — keep Say prose and connectives')
         for m, st in enumerate(sl['steps'], 1):
             w = st.get('why')
             if w and S.get('lang', 'en') == 'en' and not re.match(r'(Because|In |By |Yes|No|It |They )', w['text']):
@@ -667,14 +730,24 @@ def check(S):
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) == 3 and sys.argv[1] == 'check':
+    cmd = sys.argv[1] if len(sys.argv) >= 2 else ''
+    if len(sys.argv) == 3 and cmd == 'check':
         UNKNOWN.clear(); S_ = parse(open(sys.argv[2]).read()); probs = check(S_)
         if UNKNOWN and S_.get('voice') != 'off' and (S_.get('profile') != 'card' or S_.get('voice') == 'on'):
             probs.append('not in the lexicon, read by name: ' + ' '.join(sorted(UNKNOWN)) + ' (assets/lexicon.json)')
         print('\n'.join(probs) if probs else 'no mechanical problems')
-    elif len(sys.argv) == 3 and sys.argv[1] == 'voice':
-        # what the voice will say, slide by slide: read it as a listener before building
-        for n, sl in enumerate(parse(open(sys.argv[2]).read())['slides'], 1):
-            print(f'# {n}. {sl.get("title", "")}')
-            for m, st in enumerate(sl['steps'], 1):
-                if st.get('voice'): print(f'{n}.{m}  ' + st['voice'].replace('|', ' ').replace('^', ' ').replace('  ', ' '))
+    elif cmd == 'voice' and 3 <= len(sys.argv) <= 4:
+        args = [a for a in sys.argv[2:] if a != '--say']
+        with_say = len(args) != len(sys.argv[2:])
+        if len(args) == 1:
+            # what the voice will say, slide by slide (--say pairs each line with Say:); read before building
+            for n, sl in enumerate(parse(open(args[0]).read())['slides'], 1):
+                print(f'# {n}. {sl.get("title", "")}')
+                for m, st in enumerate(sl['steps'], 1):
+                    if not st.get('voice'): continue
+                    spoken = st['voice'].replace('|', ' ').replace('^', ' ').replace('  ', ' ')
+                    if with_say:
+                        print(f'{n}.{m}  Say:   {st["say"]}')
+                        print(f'      Voice: {spoken}')
+                    else:
+                        print(f'{n}.{m}  {spoken}')

@@ -38,7 +38,7 @@ Choose by the audience and by who drives: a lecture-like walk through a paper or
 2. **Read the sources.** Read the material and every reference it leans on from the originals. A claim taken from a secondary text is checked against the original, and disagreements are reported to the user. Known and new are kept apart. Notice unexplained premises, unmotivated computations and cross-references needed to follow the argument, and supply the missing explanation where it is used.
 3. **Plan.** Write `NAME.plan.md`: the goal and the parts, each with its slide titles. It stays short; nobody reads a detailed storyboard. Show it in a few lines and go on.
 4. **The first part as a sample.** Script the first part only (or the first few slides). Check, build and lint it, then show the user the page and wait for remarks. The remarks often change the whole plan, so the rest waits.
-5. **The rest, part by part.** For each part: script it, run `mdscript.py check`; if the talk has voice, read the output of `mdscript.py voice` for the new part as a listener and fix what sounds wrong (in the script, or in the lexicon when it would recur); build, run `lint.py` until it reports nothing, then the editor pass of `references/talk.md`. If the agent can start independent reviewers, two reviews pay off: one reads the narrative (does each step follow, is each symbol defined before use, does each Why? open with its answer), the other the mathematics and the sources. Update the plan when the parts change.
+5. **The rest, part by part.** For each part: script it, run `mdscript.py check`; if the talk has voice, read the output of `mdscript.py voice --say` for the new part — both as a listener and side by side with `Say` — and fix what sounds wrong or drifts from `Say` (in the script, or in the lexicon when it would recur); build, run `lint.py` until it reports nothing, then the editor pass of `references/talk.md`. If the agent can start independent reviewers, two reviews pay off: one reads the narrative (does each step follow, is each symbol defined before use, does each Why? open with its answer), the other the mathematics and the sources. Update the plan when the parts change.
 6. **Remarks.** A remark about this talk is applied to the whole script, not only where the user pointed, keeping Say, Voice and Board consistent. A remark about the format (it would apply to any talk) is proposed to the user as an addition to `references/talk.md` or `references/figures.md`.
 
 ## Cards
@@ -47,7 +47,7 @@ The workflow is the same, with these changes. The material is the lesson (its no
 ## Commands
 ```
 python3 scripts/mdscript.py check talk/NAME.md
-python3 scripts/mdscript.py voice talk/NAME.md     # with voice only: what will be said
+python3 scripts/mdscript.py voice talk/NAME.md --say  # with voice only: what will be said paired with Say:
 python3 scripts/build.py talk/NAME.md out/NAME.html
 python3 scripts/lint.py out/NAME.html --shot out/NAME.png
 ```
@@ -57,6 +57,7 @@ python3 scripts/lint.py out/NAME.html --shot out/NAME.png
 Each is explained in `references/talk.md`.
 - One step, one sentence, one thought, reached by splitting and never by gluing with "and".
 - Every formula the voice names is on the board at that moment, or highlighted there. The board carries notation, not prose, and never a sentence the voice says in other words.
+- Voice speaks the same prose wording, clauses and connectives as Say, differing only in spoken formulas, links and pause marks.
 - Every symbol is defined in a Say before it is used. Only standard terms, each defined when first needed.
 - General statement first, then the instance on the figure.
 - A Why? opens with the answer to its own question. A Caution names a real trap. At most one or two per slide.

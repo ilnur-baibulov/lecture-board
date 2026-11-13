@@ -53,6 +53,7 @@ Rules for the content of a lecture-board talk. They were agreed with a working m
 - One step, one thought: a step's caption is a single sentence (an introductory sentence and a definition are two steps), so that ← → and replay land exactly on the thought the viewer wants to hear again.
 - Every symbol is defined in a Say before it is used, not only in a Why? or on the board.
 - Each glossary term is linked on its first use in Say, and the link agrees in case with the sentence.
+- `Voice` speaks the same sentence as `Say`, so the eye reading the caption never meets different words from what the ear hears. Keep the prose wording, clauses and connectives of `Say` intact — never drop opening phrases or logical links (`therefore`, `precisely`, `so`, `hence`) or paraphrase a clause in `Voice`. Only formulas and equation links change into spoken words; if a sentence in `Say` sounds awkward when read aloud verbatim, rewrite both `Say` and `Voice` together.
 - The voice is cut into short chunks with pauses at formula boundaries ("P of zero, one, | times P of one, zero, | is zero"). Every mispronunciation found by ear becomes a lexicon entry.
 - In Voice, "Lie" is written "Lee"; a bold letter that denotes a vector is read "vector x", not "bold x".
 
@@ -79,6 +80,7 @@ Questions the pass asks of every step:
 - Is a statement on the board written with a verb or with $:\Longleftrightarrow$, $\iff$, $\Rightarrow$?
 - Is each step one sentence, one thought, reached by splitting and not by gluing?
 - Is the voice cut into short chunks with pauses at formula boundaries?
+- Does Voice keep the prose words, clauses and connectives of Say, without dropping qualifiers or paraphrasing?
 - Is each glossary term linked on its first use in Say?
 - Does each Why? open with the answer to its own question, add what the board leaves out, and never hide a premise essential to the main line?
 - Is every word that is not a standard term defined before it is used, and is no metaphor standing in for a definition?

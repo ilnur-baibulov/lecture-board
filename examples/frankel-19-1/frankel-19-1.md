@@ -37,7 +37,7 @@ Board:
 
 ### 1.2
 Say: Each component is the probability amplitude for position $\mathbf r$ and one spin outcome, so this column describes one particle with two spin components.
-Voice: Each component is the probability amplitude | for position vector r | and one spin outcome. || The column describes one particle | with two spin components.
+Voice: Each component is the probability amplitude | for position vector r | and one spin outcome, || so this column describes one particle | with two spin components.
 
 ### 1.3
 Say: More generally, $N$ internal states require a column $\Psi=(\psi_1,\ldots,\psi_N)^T$, whose components mix when the reference axes are rotated.
@@ -112,7 +112,7 @@ Board:
 
 ### 2.2
 Say: Number the coordinate axes $x,y,z$ as $1,2,3$, respectively, and define the generator of this rotation about $z$ by $E_3=R'(0)$.
-Voice: Number the coordinate axes x, y, zee | as one, two, three, respectively. || The generator of this rotation about zee | is {E_3}, | the derivative of R at zero.
+Voice: Number the coordinate axes x, y, zee | as one, two, three, respectively, || and define the generator of this rotation about zee | by {E_3} equals {R} prime of zero.
 Board:
 - write dR at 80,300 · 85%
   $1\leftrightarrow x,\quad 2\leftrightarrow y,\quad 3\leftrightarrow z;\qquad E_3:=R'(0),\quad R(0)=I$
@@ -156,7 +156,7 @@ Voice: The same generator has a geometric meaning: | it sends each point | to it
 
 ### 3.1
 Say: Fix a unit axis $\mathbf n$ and a constant positive angular speed $\omega$, and define the angular velocity vector by $\boldsymbol\omega=\omega\mathbf n$.
-Voice: Fix a unit axis, vector n, | and a constant positive angular speed, omega. || Define the angular velocity vector | as omega times vector n.
+Voice: Fix a unit axis, vector n, | and a constant positive angular speed, omega, || and define the angular velocity vector | by vector omega equals omega times vector n.
 Board:
 - erase all
 - write def at 70,100 · 85%
@@ -167,7 +167,7 @@ Board:
 
 ### 3.2
 Say: For rotation $R(t)=R_{\mathbf n}(\omega t)=e^{tS}$ with $S=R'(0)$, differentiating $\mathbf r(t)=R(t)\mathbf r(0)$ gives $\dot{\mathbf r}(t)=S\mathbf r(t)$.
-Voice: Write R of t | for rotation about vector n | through angle omega t, | equal to e to the {t} {S}, | with {S} the derivative of R at zero, || differentiate vector r of {t} | equal to R of {t} times vector r of zero. || The velocity is {S} times vector r of {t}.
+Voice: For rotation {R} of {t}, | rotation about vector n through omega {t}, | equal to e to the {t} {S} | with {S} equal to {R} prime of zero, || differentiating vector r of {t} equal to {R} of {t} times vector r of zero | gives vector r dot of {t} equal to {S} times vector r of {t}.
 Board:
 - write Rtime at 70,285 · 75%
   $R(t)=R_{\mathbf n}(\omega t)=e^{tS}$
@@ -178,7 +178,7 @@ Board:
 
 ### 3.3
 Say: The tip of $\mathbf r(t)$ traces the circular rim of the cone, and $\dot{\mathbf r}(t)$ is tangent to that rim.
-Voice: The tip of vector r of {t} | traces the circular rim of the cone. || Its velocity is tangent to the rim.
+Voice: The tip of vector r of {t} | traces the circular rim of the cone, || and vector r dot of {t} is tangent to that rim.
 Board:
 - set A tangent=true
 
@@ -201,14 +201,14 @@ Board:
 
 ### 3.6
 Say: Writing $\mathbf E=(E_1,E_2,E_3)$, we obtain $S=\mathbf E\cdot\boldsymbol\omega$ and recover Frankel's formula for the rotation.
-Voice: Write E for the triple {E_1}, {E_2}, {E_3}. || Then {S} is E dot omega, | which gives Frankel's formula for the rotation.
+Voice: Writing vector E equal to {E_1}, {E_2}, {E_3}, || we obtain {S} equal to vector E dot vector omega | and recover Frankel's formula for the rotation.
 Board:
 - write rot at 70,810 · 85% · equation 19.3
   $\mathbf E=(E_1,E_2,E_3),\quad S=\mathbf E\cdot\boldsymbol\omega,\quad R(t)=\exp(t\,\mathbf E\cdot\boldsymbol\omega)\quad(19.3)$
 
 ### 3.7 ¶
 Say: Thus rotation through angle $\theta$ about $\mathbf n$ is $\exp(\theta\,\mathbf E\cdot\mathbf n)$.
-Voice: Thus rotation through angle theta | about vector n | is the exponential of theta, E dot vector n.
+Voice: Thus rotation through angle theta | about vector n | is the exponential of theta, vector E dot vector n.
 Board:
 - write Rtheta at 70,925 · blue · equation 19.4
   $R_{\mathbf n}(\theta)=\exp(\theta\,\mathbf E\cdot\mathbf n)\qquad(19.4)$
@@ -315,7 +315,7 @@ Board:
 
 ### 5.6 ¶
 Say: Every Lie group acts on its Lie algebra by $\mathrm{Ad}(g)X=gXg^{-1}$, and Frankel lets $SU(2)$ act instead on $i\mathfrak g$, still calling the action $\mathrm{Ad}$, the [[ad|adjoint representation]].
-Voice: Every Lee group acts on its Lee algebra | by Ad of {g}: | {X} goes to {g} {X} {g} inverse. || Frankel lets S U two act instead | on {i} {\mathfrak g}, || still calling the action Ad.
+Voice: Every Lee group acts on its Lee algebra | by Ad of {g}, | {X} goes to {g} {X} {g} inverse, || and Frankel lets S U two act instead | on {i} {\mathfrak g}, || still calling the action Ad, | the adjoint representation.
 Board:
 - write Ad in line 7 · blue · equation 19.10
   $\mathrm{Ad}(u)\mathbf x_*=u\,\mathbf x_*u^{-1},\qquad u\in SU(2),\ \ \mathbf x_*\in i\,\mathfrak g\qquad(19.10)$
@@ -502,7 +502,7 @@ Then: At $\theta=\pi$ the space has made one full turn, while $u(\pi)=-I$.
 
 ### 8.4
 Say: At $\theta=\pi$ the matrix $u(\pi)=-I$ is not the identity, while the rotation has made one full turn.
-Voice: At theta equals pi | the matrix {u} of pi | is minus the identity, || while the rotation has made ^ one full turn.
+Voice: At theta equals pi | the matrix {u} of pi | is minus the identity, not the identity, || while the rotation has made ^ one full turn.
 Board:
 - ^ play D tq=24 live=true · 3000ms
 - write pi in b1
@@ -510,7 +510,7 @@ Board:
 
 ### 8.5
 Say: Frankel stresses the contrast: for $0\le\theta\le2\pi$ the curve $u(\theta)$ is a simple closed curve in $SU(2)$, while $\exp(2\theta E_3)$ makes two full rotations in the same range.
-Voice: Frankel stresses the contrast. || For theta from zero to two pi | the curve {u} of theta | is a simple closed curve in S U two, || while the rotation ^ makes two full turns | in the same range!
+Voice: Frankel stresses the contrast. || For theta from zero to two pi | the curve {u} of theta | is a simple closed curve in S U two, || while the exponential of two theta {E_3} ^ makes two full rotations | in the same range.
 Board:
 - ^ play D tq=48 · 3000ms
 - write tpi in b2
@@ -561,7 +561,7 @@ Voice: Thus determining the kernel | will tell us exactly how many matrices | li
 
 ### 10.0
 Say: An element lies in the kernel precisely when it commutes with every traceless hermitian matrix, so it is enough to test the Pauli basis.
-Voice: An element lies in the kernel | precisely when it commutes | with every traceless hermitian matrix. || It is enough to test the Pauli basis.
+Voice: An element lies in the kernel | precisely when it commutes | with every traceless hermitian matrix, || so it is enough to test the Pauli basis.
 
 ### 10.1
 Say: The kernel consists of the special unitary $u$ with $u\mathbf x_*u^{-1}=\mathbf x_*$ for all hermitian $\mathbf x_*$ with trace zero.
@@ -587,7 +587,7 @@ Board:
 
 ### 10.4
 Say: The matrix $\sigma_1$ swaps the two diagonal entries, so commuting with it makes $z_1$ real, and $|z_1|=1$ then gives $u=\pm I$.
-Voice: The matrix {\sigma_1} swaps the two diagonal entries, || so commuting with it makes {z_1} real. || Since its absolute value is one, | {u} is plus or minus the identity.
+Voice: The matrix {\sigma_1} swaps the two diagonal entries, || so commuting with it makes {z_1} real, || and absolute value of {z_1} equal to one | then gives {u} equal to plus or minus the identity.
 Board:
 - write a1 in line 6 · 85%
   $\sigma_1\begin{pmatrix}z_1&0\\0&\bar z_1\end{pmatrix}\sigma_1=\begin{pmatrix}\bar z_1&0\\0&z_1\end{pmatrix}\quad\Rightarrow\quad z_1=\bar z_1=\pm1$

@@ -36,7 +36,7 @@ Board:
 ```
 - `# Slide N: Title`: the N is only for the reader; slides are numbered by their order. `[[slide:Title]]` anywhere becomes "slide N".
 - `### N.M ¶` starts a new paragraph in the transcript and in Read.
-- `Say:` is the shown sentence, with `$TeX$` and glossary links. `Voice:` is what is spoken.
+- `Say:` is the shown sentence, with `$TeX$` and glossary links. `Voice:` is the same sentence written to be spoken aloud — keep the prose words, clauses and connectives of `Say:` intact, rewriting only formulas and `[[eq:...]]` links into speech (`{TeX}` or plain words), `"Lie"` as `"Lee"`, bold vectors as `"vector x"`, and adding pause or cue marks (`|`, `||`, `^`). If a sentence in `Say:` sounds awkward when read verbatim, rewrite both `Say:` and `Voice:` together.
 
 ## Voice markup
 - Math is written `{TeX}`: `{P_a}`, `{V_{a,b}}`, `{\ell^2(X_a)}`. The compiler reads it aloud by `assets/lexicon.json` (letters by their names, "pee sub ay", because a synthesizer reads a bare "a" as an article and glues "P sub a" into one word). Whole phrases ("two to the aleph null") can be lexicon entries too.
@@ -111,8 +111,8 @@ Board.figure('tracebar',{init:{r:0,half:false},
 
 ## Commands
 ```
-python3 scripts/mdscript.py check talk/NAME.md       # mechanical problems: unknown ids, unpaired ^, …
-python3 scripts/mdscript.py voice talk/NAME.md       # the spoken text, step by step; check also flags TeX the voice cannot read
+python3 scripts/mdscript.py check talk/NAME.md       # mechanical problems: unknown ids, unpaired ^, Say/Voice drift, …
+python3 scripts/mdscript.py voice talk/NAME.md       # the spoken text step by step (--say prints Say: above Voice:); check also flags unreadable TeX or drift
 python3 scripts/build.py talk/NAME.md out/NAME.html  # one self-contained page
 python3 scripts/lint.py out/NAME.html --shot out/NAME.png
 ```
