@@ -728,6 +728,47 @@ def check(S):
     return out
 
 
+def warnings(S):
+    """Advisory editorial checks for talks: consecutive slides lacking pointers, overlong notes."""
+    out = []
+    if S.get('profile', S.get('genre')) == 'card':
+        return out
+    no_pm_run = []
+
+    def flush_run():
+        if len(no_pm_run) >= 3:
+            out.append(
+                f'warning: slides {no_pm_run[0]}–{no_pm_run[-1]} have no point or mark '
+                f'(add 1–3 pointers where the voice refers back to the board)'
+            )
+        no_pm_run.clear()
+
+    for n, sl in enumerate(S['slides'], 1):
+        writes, has_pm = 0, False
+        for m, st in enumerate(sl['steps'], 1):
+            for a in st.get('do', []):
+                acts = a['actions'] if a['op'] == 'par' else [a]
+                for x in acts:
+                    if x['op'] in ('point', 'mark'):
+                        has_pm = True
+                    elif x['op'] in ('tex', 'node', 'figure'):
+                        writes += 1
+            for kind in ('why', 'caution'):
+                note = st.get(kind)
+                if note and len(note['text'].split()) > 100:
+                    w = len(note['text'].split())
+                    label = 'Why?' if kind == 'why' else 'Caution'
+                    out.append(
+                        f'warning: {n}.{m} {label} is {w} words — check that it stays tight to step {n}.{m} without essay digressions'
+                    )
+        if writes >= 3 and not has_pm:
+            no_pm_run.append(n)
+        else:
+            flush_run()
+    flush_run()
+    return out
+
+
 if __name__ == '__main__':
     import sys
     cmd = sys.argv[1] if len(sys.argv) >= 2 else ''
@@ -736,6 +777,8 @@ if __name__ == '__main__':
         if UNKNOWN and S_.get('voice') != 'off' and (S_.get('profile') != 'card' or S_.get('voice') == 'on'):
             probs.append('not in the lexicon, read by name: ' + ' '.join(sorted(UNKNOWN)) + ' (assets/lexicon.json)')
         print('\n'.join(probs) if probs else 'no mechanical problems')
+        if warns := warnings(S_):
+            print('\n'.join(warns))
     elif cmd == 'voice' and 3 <= len(sys.argv) <= 4:
         args = [a for a in sys.argv[2:] if a != '--say']
         with_say = len(args) != len(sys.argv[2:])

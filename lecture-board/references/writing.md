@@ -3,7 +3,7 @@
 Say and the Why? and Caution notes are mathematical prose. If the project or the user has writing rules of their own, those take precedence; otherwise these apply.
 
 ## Mathematical register
-Write like a good classical textbook (Akhiezer–Glazman, Kolmogorov–Fomin), following Halmos's "How to Write Mathematics": "Let…", "Denote…", "We call … if …", "Then…". Short and precise, no colloquialisms, no preamble about what comes next.
+Write like a good classical textbook (Akhiezer–Glazman, Kolmogorov–Fomin), following Halmos's "How to Write Mathematics": "Let…", "Denote…", "We call … if …", "Then…". Short and precise, no colloquialisms, no padded preambles or essay-style meta-commentary (a brief one-line transition or motivation where needed is fine).
 
 - A term is introduced once, at the moment it is first needed, by a one-sentence definition. Only standard mathematical terms, no ad hoc words. An informal word of the source is defined before use and attributed.
 - A section, a chain of lemmas or a long proof opens with one sentence saying what question it answers or why the object is needed: the obstruction, or the example that forces the definition.
