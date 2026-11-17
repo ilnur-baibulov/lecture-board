@@ -34,18 +34,18 @@ const boardHTML=()=>{const m='ah'+(NB++);return `<svg viewBox="0 0 ${W} ${H}" da
 const LANG={
   en:{watch:'Watch',read:'Read',play:'Play',transcript:'Text',settings:'Settings',why:'why',caution:'caution',clickToRead:'click to read',
     tPrevSlide:'previous slide (Shift+←)',tPrevStep:'previous step (←)',tNextStep:'next step (→)',tNextSlide:'next slide (Shift+→)',tList:'contents (G)',zIn:'zoom in',zOut:'zoom out',zHome:'original view',
-    tSpeed:'speed ([ and ])',tAuto:'autoplay: steps follow by themselves (P)',auto:'auto',tTx:'text: the transcript beside the board (T)',tFs:'full screen (F)',tPlay:'play (Space)',tPause:'pause (Space)',close:'close (Esc)',
+    tSpeed:'speed ([ and ])',tAuto:'auto-advance: steps follow by themselves (A)',auto:'auto',tTx:'text: the transcript beside the board (T)',tFs:'full screen (F)',tPlay:'play (P)',tPause:'pause (P)',close:'close (Esc)',
     gDisplay:'Display',sSpeed:'Animation speed',sTx:'Text size',sInk:'Board text',sCap:'Captions size',sBoard:'Board size',sPage:'Page',sBoardC:'Board',dark:'dark',light:'light',
     sCapPos:'Captions',above:'above the drawing',below:'below the drawing',off:'off',sNotes:'Definitions and Why?',sNotesCard:'Definitions and notes',nWord:'next to the word',nSide:'top of the transcript',nSideCard:'top of the text',
     gSlides:'Slides',sNext:'Next slide',nAuto:'starts by itself',nWait:'waits for me',sStepGap:'Pause between steps',sGap:'Pause between slides',gKeys:'Keys',reset:'Reset',
-    keys:[['Space','play / pause'],['← →','previous / next step'],['E',"show the current slide's finished board"],['h l','previous / next step; <kbd>k j</kbd> — previous / next slide'],
-      ['Shift+← →','previous / next slide'],['R','replay the step'],['P','autoplay on / off'],['[ ]','slower / faster'],['V','voice on / off',1],['?','open the Why?'],['!','open the Caution'],
-      ['T','text (transcript) on / off'],['A','read view (article)'],['D','page and board: dark / light'],['F','full screen'],['S or ⌘ ,','settings'],['G','contents; in it ↑ ↓ choose, ← → previous / next part, Enter play, Esc close'],['Esc','close']],
+    keys:[['Space','next step (fast)'],['← →','previous / next step (caption first)'],['P','play / pause'],['E',"show the current slide's finished board"],['h l','previous / next step; <kbd>k j</kbd> — previous / next slide'],
+      ['Shift+← →','previous / next slide'],['R','replay the step'],['A','auto-advance on / off'],['[ ]','slower / faster'],['V','voice on / off',1],['?','open the Why?'],['!','open the Caution'],
+      ['T','text (transcript) on / off'],['M','read view (article)'],['D','page and board: dark / light'],['F','full screen'],['S or ⌘ ,','settings'],['G','contents; in it ↑ ↓ choose, ← → previous / next part, Enter play, Esc close'],['Esc','close']],
     keysNote:'Click a sentence to play from it; underlined words open definitions.',
     cardKeys:[['← →','previous / next step'],['Space','show motion / pause'],['R','replay motion'],['Shift+← →','previous / next card'],['[ ]','slower / faster animation'],
       ['D','dark / light'],['F','full screen'],['S or ⌘ ,','settings'],['G','contents'],['Esc','close']],
     cardKeysNote:'Click a past step to return to its picture; underlined words open definitions and notes.',
-    slide:'Slide',spacePlay:'Space: play',nextS:'Next: slide',inS:n=>`in ${n} s · Space: stay`,endT:'End of the talk.',
+    slide:'Slide',spacePlay:'P: play',nextHint:'Space: next · P: play',nextS:'Next: slide',inS:n=>`in ${n} s · P: stay`,endT:'End of the talk.',
     counter:(k,N,i,n,p,P)=>(P?`part ${p}/${P} · `:'')+`slide ${k}/${N} · ${i}/${n}`,goSlide:'go to this slide',
     whyT:'Why: ',cautionT:'Caution: ',sQ:'Questions',qAsk:'ask',qShow:'show the answers',replayMotion:'Replay motion',check:'Check',clickHow:'Click the answer on the picture.',reveal:'Show the answer',right:'Right.',wrong:'Not quite.',answerT:'Answer: ',needAnswer:'Answer, show the answer, or skip.',skip:'Skip',skipped:'Skipped.',retry:'Try again',hint:'Hint',continueQ:'Continue',fullSlide:'Show all',playNext:'Play next slide',part:'Part',step:'step',stage:'stage',card:'Card',show:'show the motion (Space)',again:'again (R)'},
   /* Russian: the interface of a card page with lang: ru (a talk keeps the English interface) */
@@ -557,8 +557,8 @@ function mount(S){
     const ended=state==='done'||state==='gap';
     let h=state==='ready'?`<span class="cw">${fmt(sayAt(K0,0),G)}</span>`
       :live?fmt(sayAt(K0,I0),G):ended?fmt(sayAt(K0,steps(K0).length-1),G):'';
-    /* at the end of a slide a grey caption of its own names the next one: in n s with autoplay, Space: play without it */
-    if((nxt||state==='gap')&&!CARD){const nx=K0<N-1?`${L.nextS} ${fmt(stitle(K0+1),G)}`+(state==='gap'?` · ${L.inS(gapLeft)}`:AUTO&&SET.autonext==='auto'?'':` · ${L.spacePlay}`):L.endT;
+    /* at the end of a slide a grey caption of its own names the next one: in n s with auto-advance, Space: next / P: play without it */
+    if((nxt||state==='gap')&&!CARD){const nx=K0<N-1?`${L.nextS} ${fmt(stitle(K0+1),G)}`+(state==='gap'?` · ${L.inS(gapLeft)}`:AUTO&&SET.autonext==='auto'?'':` · ${L.nextHint}`):L.endT;
       h=`<span class="nxt">${nx}</span>`+(K0<N-1?` <button class="play-next">${L.playNext}</button>`:'')}
     if(wipe)h='';
     cap.classList.toggle('action',!wipe&&['held','playing','paused'].includes(state)&&!(nxt||state==='gap'));
@@ -721,16 +721,16 @@ function mount(S){
       if(j<ss.length-1&&!AUTO){state='held';ui();return}
       if(j<ss.length-1&&!(await vsleep(SET.stepgap*1000*speed,tk)))return}
     slideEnd(k,tk)}
-  /* the end of a slide: the grey line names the next one; with autoplay it counts down and the next slide starts, otherwise it waits */
+  /* the end of a slide: the grey line names the next one; with auto-advance it counts down and the next slide starts, otherwise it waits */
   async function slideEnd(k,tk){K0=k;I0=steps(k).length-1;nxt=!CARD;
-    /* a short breath, then the next slide; Space holds */
+    /* a short breath, then the next slide; P holds */
     if(k<N-1&&SET.autonext==='auto'&&AUTO){state='gap';for(gapLeft=SET.gap;gapLeft>0;gapLeft--){ui();if(!(await vsleep(1000*speed,tk))||state!=='gap')return}playFrom(k+1,0)}
     else{state='done';ui()}}
   /* → on a slide's last step while the story plays: its board finished at once, then the grey line */
   function toEnd(k){build(k,steps(k).length);slideEnd(k,token)}
-  /* stopped on step i of slide k, its board drawn and its caption shown; ← → move silently, Space goes on from step i+1 */
+  /* stopped on step i of slide k, its board drawn and its caption shown; ← → move silently, Space draws step i+1 at once, P plays from step i+1 */
   function hold(k,i){if(i>=steps(k).length-1)return finish(k);build(k,i+1);K0=k;I0=i;state='held';paused=false;userScroll=-1e9;qMark(k,i);ui()}
-  /* the caption of step i over the board before it; Space plays step i */
+  /* the caption of step i over the board before it; Space or P starts step i */
   function preAt(k,i){build(k,i);K0=k;I0=i;state='held';paused=false;pre=true;userScroll=-1e9;ui()}
   const acts=(k,i)=>(steps(k)[i].do||[]).filter(a=>a.op!=='cue');
   const wipeAt=k=>{for(let i=0;i<steps(k).length;i++){const a=acts(k,i);if(a.length)return a[0].op==='erase'&&a[0].ids==='all'?i:-1}return -1};
@@ -738,10 +738,11 @@ function mount(S){
   function micro(){wipe=true;ui();const tk=token;setTimeout(()=>{if(tk===token){wipe=false;ui()}},SET.wipe*1000)}
   /* ← → while stopped: the caption of a step over the board before it, then its board drawn with its animation, never voice */
   function toStep(k,i){if(acts(k,i).length)preAt(k,i);else hold(k,i);if(i===0)micro()}
-  async function drawStep(k,i){token++;const tk=token;if(i===wipeAt(k))B.run(acts(k,i)[0],true);pre=false;drawing=true;state='held';ui();
-    for(const a of steps(k)[i].do||[]){if(a.op==='cue')continue;await B.run(a,false,tk);if(tk!==token)return}
+  async function drawStep(k,i){started=true;token++;const tk=token,skip=i===wipeAt(k)?acts(k,i)[0]:null;
+    if(skip)B.run(skip,true);pre=false;drawing=true;state='held';ui();
+    for(const a of steps(k)[i].do||[]){if(a.op==='cue'||a===skip)continue;await B.run(a,false,tk);if(tk!==token)return}
     drawing=false;if(i===steps(k).length-1)state='done';ui()}
-  /* → while the board is being drawn, or during the pause before a slide's first caption: finish it at once */
+  /* → (or Space) while the board is being drawn, or during the pause before a slide's first caption: finish it at once */
   function settle(){if(drawing){const k=K0,i=I0;build(k,i+1);K0=k;I0=i;state=i===steps(k).length-1?'done':'held';ui()}else if(wipe){wipe=false;ui()}}
   function toSlide(k){if(CARD)return ready(k);if(state==='playing'||state==='gap')playFrom(k,0);else ready(k)}
   function ready(k){build(k,0);K0=k;I0=0;state='ready';paused=false;ui()}
@@ -759,6 +760,22 @@ function mount(S){
     else if(drawing&&!paused)pauseClock(true);
   }
   const act={
+    step(){const n=steps(K0).length;
+      if(CARD)return act.toggle();
+      const go=(k,i)=>{build(k,i);K0=k;I0=i;drawStep(k,i)};
+      if(state==='playing'||state==='paused'){
+        if(!pre&&!nxt&&!qDone(K0,I0)){if(state==='playing')setPaused(true);qst(K0,I0).msg=L.needAnswer;ui();return}
+        if(I0<n-1)go(K0,I0+1);else{finish(K0);nxt=true;ui()}
+        return
+      }
+      if(state==='gap'){if(K0<N-1)go(K0+1,0);else{token++;state='done';nxt=true;ui()}return}
+      if(drawing||wipe){settle();return}
+      if(state!=='ready'&&!nxt&&!pre&&!qDone(K0,I0)){qst(K0,I0).msg=L.needAnswer;ui();return}
+      if(pre||state==='ready'){drawStep(K0,pre?I0:0);return}
+      if(state==='held'){if(I0<n-1)go(K0,I0+1);else{finish(K0);nxt=true;ui()}return}
+      if(state==='done'&&!nxt){nxt=true;ui();return}
+      if(K0<N-1)go(K0+1,0);
+    },
     toggle(){if(!CARD&&state!=='ready'&&!nxt&&!pre&&!qDone(K0,I0)){if(state==='playing')setPaused(true);qst(K0,I0).msg=L.needAnswer;ui();return}if(CARD){if(state==='playing'||state==='paused')setPaused(state==='playing');else if(armed)motion();else act.nextStep();return}
       if(drawing){pauseClock(!paused);return}
       if(state==='ready')playFrom(K0,0);else if(state==='held')playFrom(K0,pre?I0:I0+1);else if(state==='gap'){token++;state='done';ui()}else if(state==='done'){if(K0<N-1)playFrom(K0+1,0)}else setPaused(state==='playing')},
@@ -917,21 +934,22 @@ function mount(S){
     if(k==='s'||k==='S'){toggleSet();return}
     if(k==='?'||k==='!'){const b=$('.sign.'+(k==='?'?'why':'caution'));if(b&&!b.hidden)b.click();return}
     if(k==='d'||k==='D'){SET.page=SET.board=SET.board==='dark'?'light':'dark';applySet();return}
-    if(CARD&&(k==='p'||k==='P'))return;
-    if(!CARD&&(k==='a'||k==='A')){setView(view==='watch'?'read':'watch');return}
+    if(CARD&&(k==='a'||k==='A'||k==='p'||k==='P'||k==='m'||k==='M'))return;
+    if(!CARD&&(k==='m'||k==='M')){setView(view==='watch'?'read':'watch');return}
     if(!CARD&&(k==='t'||k==='T')){if(view==='watch')toggleTx();return}
     if(k==='f'||k==='F'){toggleFullscreen();return}
     if(view!=='watch')return;
     /* vim keys: h l step, j k slide */
     if(!e.metaKey&&!e.ctrlKey&&!e.altKey&&'hjkl'.includes(k)&&k.length===1){({h:act.prevStep,l:act.nextStep,j:act.nextSlide,k:act.prevSlide})[k]();return}
-    if(k===' '&&!e.target.closest('.freplay,.stt,.talk-tools button,.setp button')){e.preventDefault();act.toggle()}
+    if(k===' '&&!e.target.closest('.freplay,.stt,.talk-tools button,.setp button')){e.preventDefault();act.step()}
     else if(k==='ArrowRight'){e.preventDefault();sh?act.nextSlide():act.nextStep()}
     else if(k==='ArrowLeft'){e.preventDefault();sh?act.prevSlide():act.prevStep()}
     else if(k==='PageDown'){e.preventDefault();act.nextSlide()}
     else if(k==='PageUp'){e.preventDefault();act.prevSlide()}
     else if(k==='e'||k==='E'||k==='End'){e.preventDefault();act.finish()}
     else if(k==='r'||k==='R')act.replay()
-    else if(k==='p'||k==='P')setAuto(!AUTO)
+    else if(k==='p'||k==='P')act.toggle()
+    else if(k==='a'||k==='A')setAuto(!AUTO)
     else if(k===']')act.speed(1)
     else if(k==='[')act.speed(-1)
     else if((k==='v'||k==='V')&&!NOVOICE)vox.click()});
@@ -953,7 +971,7 @@ function mount(S){
       ts.forEach((t,i)=>{const r=rs[i];if(r.left<Bx.left-1||r.right>Bx.right+1||r.top<Bx.top-1||r.bottom>Bx.bottom+1)add(`${at}: "${name(t)}" goes past the board edge`);
         for(let j=i+1;j<ts.length;j++){const q=rs[j],ox=Math.min(r.right,q.right)-Math.max(r.left,q.left),oy=Math.min(r.bottom,q.bottom)-Math.max(r.top,q.top);if(ox>3&&oy>.3*Math.min(r.height,q.height))add(`${at}: "${name(t)}" overlaps "${name(ts[j])}"`)}
         if(r.right>Bx.left+.9*Bx.width&&r.top<Bx.top+.1*Bx.height)add(`${at}: "${name(t)}" sits in the Why? corner`);
-        if(r.right>Bx.left+.83*Bx.width&&r.bottom>Bx.top+.91*Bx.height)add(`${at}: "${name(t)}" sits in the corner of the "Space: play" note`);
+        if(r.right>Bx.left+.83*Bx.width&&r.bottom>Bx.top+.91*Bx.height)add(`${at}: "${name(t)}" sits in the corner of the "P: play" note`);
         if(!t.classList.contains('c'))circ.forEach(c=>{if(inter(r,c)>.25*c.width*c.height)add(`${at}: "${name(t)}" covers a node`)});
         /* text over a figure: its labels, or the pixels it has drawn under the text */
         figs.forEach(f=>{const F=R(f);if(!inter(r,F))return;

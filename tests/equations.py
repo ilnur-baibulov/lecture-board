@@ -47,7 +47,7 @@ with sync_playwright() as p:
     # Opening a preview while playing pauses; closing restores playback at the same step.
     page.goto(Path(sys.argv[1]).resolve().as_uri()+'#2')
     page.reload()
-    page.keyboard.press('Space')
+    page.keyboard.press('p')
     page.wait_for_function('MB_ST().state === "playing" && !MB_ST().wipe')
     page.locator('.capt [data-eq]').click()
     assert state()['state']=='paused'

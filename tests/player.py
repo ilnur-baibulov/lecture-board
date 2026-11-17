@@ -11,7 +11,7 @@ with sync_playwright() as p:
   errors=[];pg.on('pageerror',lambda e:errors.append(str(e)))
   pg.add_init_script('localStorage.clear();localStorage.setItem("mb-auto-nv","off");localStorage.setItem("mb-settings",JSON.stringify({cap:"' + cap_mode + '",transcript:false}));')
   pg.goto(Path(sys.argv[1]).resolve().as_uri());pg.evaluate('document.fonts.ready')
-  if played:pg.keyboard.press('Space');pg.wait_for_timeout(50)
+  if played:pg.keyboard.press('p');pg.wait_for_timeout(50)
   pg.locator('.finish').click();assert pg.locator('.board.main input[type=range]').count()==1
   pg.locator('.finish').click();assert pg.evaluate('MB_ST().k')==1
   pg.locator('.nb').click();assert pg.evaluate('MB_ST().k')==2
@@ -53,7 +53,7 @@ with sync_playwright() as p:
  pg=b.new_page(viewport={'width':1280,'height':800})
  pg.add_init_script('localStorage.clear();localStorage.setItem("mb-auto-nv","on");')
  pg.goto(Path(sys.argv[1]).resolve().as_uri()+'#2')
- pg.keyboard.press('Space');pg.locator('.qpanel .qin').wait_for(state='visible')
+ pg.keyboard.press('p');pg.locator('.qpanel .qin').wait_for(state='visible')
  pg.locator('.qpanel .qrev').click();pg.wait_for_timeout(2500)
  assert pg.evaluate('MB_ST().i')==2
  pg.locator('.qcontinue').click();assert pg.evaluate('MB_ST().i')==3
@@ -103,10 +103,10 @@ with sync_playwright() as p:
  pg.locator('.finish').click()
  assert pg.locator('.qpanel').is_hidden()
  pg.locator('.nb').click() # a slide with only a question
- pg.keyboard.press('Space')
+ pg.keyboard.press('p')
  pg.wait_for_function('MB_ST().state==="done"')
  assert pg.locator('.qpanel').is_hidden()
- pg.keyboard.press('Space')
+ pg.keyboard.press('p')
  pg.wait_for_function('MB_ST().k===4 && MB_ST().state==="done"')
  pg.keyboard.press('Shift+ArrowLeft')
  assert pg.evaluate('MB_ST().k===4 && MB_ST().state==="ready"')
@@ -123,3 +123,41 @@ with sync_playwright() as p:
  assert not errors,errors
  b.close()
 print('PASS: disabling an open question, reverse stepping, board actions, Read, reload, question-only slide and hidden controls')
+
+# New bindings: Space fast step, ArrowRight two-stage slow step, P play/pause, A auto-advance, M Read view.
+with sync_playwright() as p:
+ b=p.chromium.launch(executable_path=os.environ.get('MB_BROWSER','/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'))
+ pg=b.new_page(viewport={'width':1280,'height':800})
+ errors=[];pg.on('pageerror',lambda e:errors.append(str(e)))
+ pg.add_init_script('localStorage.clear();localStorage.setItem("mb-auto-nv","off");localStorage.setItem("mb-settings",JSON.stringify({ask:"hide"}));')
+ pg.goto(Path(sys.argv[1]).resolve().as_uri()+'#2')
+ assert not pg.evaluate('MB_ST().auto')
+ pg.keyboard.press('a');assert pg.evaluate('MB_ST().auto')
+ pg.keyboard.press('a');assert not pg.evaluate('MB_ST().auto')
+ pg.keyboard.press('m');assert pg.locator('.read').is_visible()
+ pg.keyboard.press('m');assert not pg.locator('.read').is_visible()
+ pg.keyboard.press('Space')
+ st=pg.evaluate('MB_ST()')
+ assert (st['k'],st['i'],st['state'],st['pre'])==(2,1,'held',False),st
+ pg.keyboard.press('Space')
+ st=pg.evaluate('MB_ST()')
+ assert (st['k'],st['i'],st['drawing'])==(2,2,True),st
+ pg.keyboard.press('Space')  # settles current drawing rather than wiping slide
+ st=pg.evaluate('MB_ST()')
+ assert (st['k'],st['i'],st['state'],st['drawing'],st['nxt'])==(2,2,'done',False,False),st
+ pg.keyboard.press('Space');assert pg.evaluate('MB_ST().nxt') and pg.evaluate('MB_ST().k')==2
+ pg.keyboard.press('Space');assert pg.evaluate('MB_ST().k')==3
+ # P plays and pauses; Space cancels playback and advances silently.
+ pg.goto(Path(sys.argv[1]).resolve().as_uri()+'#2');pg.reload()
+ pg.keyboard.press('p');pg.wait_for_function('MB_ST().state==="playing"')
+ pg.keyboard.press('p');assert pg.evaluate('MB_ST().state')=='paused'
+ pg.keyboard.press('Space')
+ st=pg.evaluate('MB_ST()')
+ assert (st['k'],st['i'],st['drawing'])==(2,2,True) and st['state']!='playing',st
+ # ArrowRight keeps caption-first two-stage stop.
+ pg.goto(Path(sys.argv[1]).resolve().as_uri()+'#2');pg.reload()
+ pg.keyboard.press('ArrowRight');pg.wait_for_timeout(700);pg.keyboard.press('ArrowRight')
+ assert pg.evaluate('MB_ST().pre') and pg.evaluate('MB_ST().i')==2
+ assert not errors,errors
+ b.close()
+print('PASS: Space fast step, ArrowRight slow step, P play/pause, A auto-advance, M Read view')

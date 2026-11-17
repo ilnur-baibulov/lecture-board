@@ -47,7 +47,7 @@ Rules for the content of a lecture-board talk. They were agreed with a working m
 - The pointer (`point ID …`) shows what the voice is talking about when the words alone do not. It complements, never replaces, writing a formula on the board. Its natural place is a reference back to something already on the board; pair it with `mark` (and `\piece{name}{…}` on parts of long formulas) and `^` cues so the board stays active rather than a static list of lines. One to three per slide.
 - Figures come in four levels, from the most common to the rarest: rows for text; a library of figure kinds laid out by the engine (a tree now); a free drawing by coordinates; an interactive figure drawn by a script (see `script-format.md`). A kind is added the first time a talk needs it and then reused, not reinvented.
 - Interactivity stays where it shows something (`figures.md`): a parameter the statement depends on becomes a control of the figure; a figure without parameters has none. Play a narrated motion before revealing inspection sliders (`inspect: true`, `replay`), and hide them again when a later step starts a new narrated motion on the same figure.
-- The board's top right corner stays free for the Why? and Caution signs, and its bottom right corner for the note "Space: play" at the start of a slide.
+- The board's top right corner stays free for the Why? and Caution signs, and its bottom right corner for the note "P: play" at the start of a slide.
 
 ## Steps and voice
 - One step, one thought: a step's caption is a single sentence (an introductory sentence and a definition are two steps), so that ← → and replay land exactly on the thought the viewer wants to hear again.
