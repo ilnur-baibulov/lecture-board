@@ -40,8 +40,8 @@ Board:
 - set ID k=v …                       change a figure's state at once (numbers, true/false, words)
 - play ID k=v … · 1500ms             move a figure's numbers to these values over the duration
 - ^ ACTION                           waits for the next ^ in Voice
-Options: blue violet yellow dim ink red · 85% (size) · fade · 700ms · term KEY · centered
-         · label 90% (node label size) · depth N · label $TeX$ (arc label)
+Options: blue violet yellow dim ink red · 85% (size) · fade · 700ms · term KEY · equation LABEL · centered
+         · callout ["LABEL"] · rail ["LABEL"] · label 90% (node label size) · depth N · label $TeX$ (arc label)
 Coordinates are on a 1600×1000 board.
 Front matter may also give  lang: ru  (language of the text; the interface is always English),  voice: off  (no voice; steps last their reading time)
 and  figures: FILE.js  (figure kinds, next to the script).
@@ -83,6 +83,7 @@ def dump_action(a, ind, cue):
         if 'dur' in a: o.append(f"{num(a['dur'])}ms")
         if 'term' in a: o.append('term ' + a['term'])
         if 'equation' in a: o.append('equation ' + a['equation'])
+        if 'block' in a: o.append(a['block'] + (f' "{a["head"]}"' if a.get('head') else ''))
         if a.get('anchor') == 'c': o.append('centered')
         return [pre + SEP.join([f"write {a['id']} at {num(a['x'])},{num(a['y'])}"] + o), ' ' * (ind + 2) + '$' + a['tex'] + '$']
     if op == 'node':
@@ -345,6 +346,11 @@ def parse_item(text, tex, where, ctx=None, outline=None):
         elif m := re.fullmatch(r'equation ([\w.-]+)', o):
             if a['op'] != 'tex': raise ValueError(f'{where}: equation label needs a write action')
             a['equation'] = m[1]
+        elif m := re.fullmatch(r'(callout|rail)(?: "(.+)")?', o):
+            if a['op'] != 'tex': raise ValueError(f'{where}: {m[1]} needs a write action')
+            if 'block' in a: raise ValueError(f'{where}: write {a["id"]} cannot combine {a["block"]} and {m[1]}')
+            a['block'] = m[1]
+            if m[2]: a['head'] = m[2]
         else: raise ValueError(f'{where}: unknown option "{o}"')
     return a
 

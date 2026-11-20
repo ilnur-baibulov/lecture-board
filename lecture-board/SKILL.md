@@ -56,7 +56,7 @@ python3 scripts/lint.py out/NAME.html --shot out/NAME.png
 ## The rules that matter most
 Each is explained in `references/talk.md`.
 - One step, one sentence, one thought, reached by splitting and never by gluing with "and". Brief transition steps that frame a slide's subgoal are fine in moderation; explaining formulas aloud in `Say` is good, while empty filler phrases and essay prose are cut.
-- Every formula the voice names is on the board at that moment, or highlighted there. The board carries notation, not prose, and never a sentence the voice says in other words.
+- Every formula the voice names is on the board at that moment, or highlighted there. The board carries notation, not prose, and never a sentence the voice says in other words. Frame formal statements or main claims in a `callout` with their full title, and bound proofs or derivations in a `rail` (with continuation title across slides, explicit opening in `Say:`, and `\square` on the final proof step).
 - Use `point` (typically 1–3 per slide, plus `mark` or `\piece` when helpful) whenever the voice refers back to something already on the board, and `^` cues when timing matters.
 - Voice speaks the same prose wording, clauses and connectives as Say, differing only in spoken formulas, links and pause marks.
 - Every symbol is defined in a Say before it is used. Only standard terms, each defined when first needed.

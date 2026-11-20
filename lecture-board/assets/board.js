@@ -68,7 +68,7 @@ const FIGS={},FIGLIVE=new Set(),ZV={};let QHIT=()=>{},QON=()=>false;
 function mount(S){
   const G=S.glossary||{},EQ=Object.create(null);
   S.slides.forEach((sl,k)=>sl.steps.forEach(st=>(st.do||[]).forEach(function collect(a){
-    if(a.equation)(EQ[a.equation]||(EQ[a.equation]={k,tex:[]})).tex.push(a.tex);
+    if(a.equation){const q=EQ[a.equation]||(EQ[a.equation]={k,tex:[]});q.tex.push(a.tex);if(a.head&&!q.head)q.head=a.head}
     (a.actions||[]).forEach(collect);
   })));
   function equationLinks(root){root.querySelectorAll('[data-eq]').forEach(e=>{
@@ -246,19 +246,49 @@ function mount(S){
 
   /* ---------- a drawing surface: one board ---------- */
   function Surface(box){
-    const svg=box.querySelector('svg'),g=box.querySelector('.g'),ink=box.querySelector('.ink'),mk=`url(#${svg.dataset.m})`,obj=new Map();
+    const svg=box.querySelector('svg'),g=box.querySelector('.g'),ink=box.querySelector('.ink'),mk=`url(#${svg.dataset.m})`,obj=new Map(),groups=[];
+    let active={callout:null,rail:null};
     const put=(id,o)=>{if(id){const old=obj.get(id);if(old)old.remove();obj.set(id,o)}return o};
     const anim=(e,kf,dur,inst)=>{if(inst||!dur)return;tune(e.animate(kf,{duration:dur,easing:'ease-in-out',fill:'backwards'}))};
     const drawIn=(p,dur,inst)=>{if(inst||!dur)return;p.setAttribute('pathLength','1');
       tune(p.animate([{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}],{duration:dur,easing:'ease-in-out'}))};
+    function layoutGroup(grp){if(!grp.items.length)return;
+      const B=box.getBoundingClientRect();if(!B.width||!B.height)return;
+      const ux=B.width/W,uy=B.height/H;
+      let l0=Infinity,t0=Infinity,r0=-Infinity,b0=-Infinity;
+      for(const el of grp.items){const r=el.getBoundingClientRect();l0=Math.min(l0,(r.left-B.left)/ux);t0=Math.min(t0,(r.top-B.top)/uy);r0=Math.max(r0,(r.right-B.left)/ux);b0=Math.max(b0,(r.bottom-B.top)/uy)}
+      const hd=grp.headEl,hr=hd?hd.getBoundingClientRect():null,hh=hr?hr.height/uy:0,hw=hr?hr.width/ux:0;
+      const isC=grp.kind==='callout';
+      const x=l0-(isC?20:24),x2=Math.max(r0,l0+hw)+(isC?28:12);
+      const y=t0-(hh?hh+(isC?16:8):(isC?12:6)),y2=b0+(isC?14:6);
+      Object.assign(grp.el.style,{left:x/W*100+'%',top:y/H*100+'%',width:(x2-x)/W*100+'%',height:(y2-y)/H*100+'%'})}
+    const layoutGroups=()=>groups.forEach(layoutGroup);
+    const gro=new ResizeObserver(layoutGroups);gro.observe(box);FIGLIVE.add(layoutGroups);
+    if(document.fonts){document.fonts.addEventListener('loadingdone',layoutGroups);document.fonts.ready.then(layoutGroups)}
     function tex(a,inst){const d=document.createElement('div');d.className='t'+(a.anchor?' '+a.anchor:'');
       /* 'after': start right after another board text, on its line */
       let x=a.x,y=a.y;if(a.after){const r=obj.get(a.after);if(r&&r.el[0]){const e=r.el[0],bw=box.clientWidth||1;x=(e.offsetLeft+e.offsetWidth)/bw*W+90;y=r.y}}
+      else if(a.block==='rail')x+=24;
       d.style.left=x/W*100+'%';d.style.top=y/H*100+'%';d.style.color=col(a.color);if(a.size)d.style.fontSize=a.size+'em';
       d.innerHTML=a.html?fmt(a.html,G):K(a.tex,a.display);if(a.term)d.dataset.term=a.term;ink.appendChild(d);equationLinks(d);
+      let grp=null;
+      if(!a.block){active.callout=active.rail=null}
+      else{
+        if(a.block==='rail'&&a.head)active.callout=null;
+        if(a.head||!active[a.block]){
+          const ge=document.createElement('div');ge.className='bgrp '+a.block;
+          let hd=null;if(a.head){hd=document.createElement('div');hd.className='bgrp-h';hd.innerHTML=fmt(a.head,G);equationLinks(hd);ge.appendChild(hd);gro.observe(hd)}
+          ink.appendChild(ge);
+          grp={kind:a.block,el:ge,headEl:hd,items:[]};groups.push(grp);active[a.block]=grp;
+          anim(ge,[{opacity:0},{opacity:1}],a.dur??500,inst);
+        }else grp=active[a.block];
+        grp.items.push(d);gro.observe(d);layoutGroup(grp);
+      }
       if(a.anim==='fade')anim(d,[{opacity:0},{opacity:1}],a.dur??500,inst);
       else anim(d,[{clipPath:'inset(-20% 100% -20% 0)'},{clipPath:'inset(-20% 0% -20% 0)'}],a.dur??900,inst);
-      return {y,el:[d],remove:()=>d.remove(),recolor:c=>d.style.color=col(c)}}
+      return {y,el:[d],remove:()=>{gro.unobserve(d);d.remove();if(grp){const i=grp.items.indexOf(d);if(i>=0)grp.items.splice(i,1);
+        if(!grp.items.length){if(grp.headEl)gro.unobserve(grp.headEl);grp.el.remove();const gi=groups.indexOf(grp);if(gi>=0)groups.splice(gi,1);if(active[grp.kind]===grp)active[grp.kind]=null}else layoutGroup(grp)}},
+        recolor:c=>d.style.color=col(c)}}
     function path(a,inst){const p=el('path',{d:a.d,fill:'none','stroke-width':a.width||3,'stroke-linecap':'round'},g);p.style.stroke=col(a.color);
       if(a.dash)p.setAttribute('stroke-dasharray',a.dash);
       if(a.dash)anim(p,[{opacity:0},{opacity:1}],a.dur??500,inst);else drawIn(p,a.dur??700,inst);
@@ -454,7 +484,7 @@ function mount(S){
       put(a.id||('_'+Math.random()),MAKE[a.op](a,inst));
       if(!inst)await vsleep(a.dur??(a.op==='tex'?900:a.op==='node'?500:a.op==='figure'?400:700),tk)}
     /* a figure is removed through its own remove(), which stops its resize observer and its live redraw */
-    const clear=()=>{for(const o of obj.values())if(o.fig)o.remove();g.innerHTML='';ink.innerHTML='';obj.clear()};
+    const clear=()=>{for(const o of obj.values())if(o.fig)o.remove();groups.forEach(gr=>{gr.items.forEach(e=>gro.unobserve(e));if(gr.headEl)gro.unobserve(gr.headEl)});groups.length=0;active.callout=active.rail=null;g.innerHTML='';ink.innerHTML='';obj.clear()};
     /* instant state after slides < k and steps < i of slide k */
     /* the replay starts at the latest step before that point which erases the whole board, since nothing drawn before it is left */
     const wipes=st=>(st.do||[]).some(a=>a.op==='erase'&&a.ids==='all');
@@ -497,7 +527,8 @@ function mount(S){
   function showTerm(k,btn){const t=G[k];if(!t)return;app.querySelectorAll('.term.on').forEach(b=>b.classList.remove('on'));
     showCard('t:'+k,`<b>${fmt(t.term,G)}</b>${para(fmt(t.def,G))}`,btn);if(!card.hidden&&btn&&btn.classList.contains('term'))btn.classList.add('on')}
   function showEquation(key,anchor){const q=EQ[key];if(!q)return;
-    showCard('eq:'+key,`<b>(${key}) · ${fmt(S.slides[q.k].title||L.slide+' '+(q.k+1),G)}</b><div class="eq-body">${q.tex.map(t=>K(t,true)).join('')}</div>`,anchor)}
+    const ttl=(q.head?fmt(q.head,G)+' · ':'')+fmt(S.slides[q.k].title||L.slide+' '+(q.k+1),G);
+    showCard('eq:'+key,`<b>(${key}) · ${ttl}</b><div class="eq-body">${q.tex.map(t=>K(t,true)).join('')}</div>`,anchor)}
   // Capture before caption, transcript and note handlers: previewing never navigates.
   app.addEventListener('click',e=>{const r=e.target.closest('[data-eq]');if(!r||!EQ[r.dataset.eq])return;
     e.preventDefault();e.stopImmediatePropagation();showEquation(r.dataset.eq,r)},true);
@@ -853,7 +884,8 @@ function mount(S){
     $('.watch').hidden=v!=='watch';$('.read').hidden=v!=='read';hideCard();if(v==='read')buildRead();
     placeCard(null);
     if(v==='read'){if(state==='playing')setPaused(true);const sec=$('#slide-'+(K0+1));if(sec)sec.scrollIntoView({block:'start'})}
-    else{app.scrollTop=0;window.scrollTo(0,0);ui()}}
+    else{app.scrollTop=0;window.scrollTo(0,0);ui()}
+    FIGLIVE.forEach(f=>f())}
   app.querySelectorAll('.talk-tools [data-v]').forEach(b=>b.onclick=()=>setView(b.dataset.v));
 
   /* ---------- wiring ---------- */
@@ -980,6 +1012,13 @@ function mount(S){
           const w=Math.round((x1-x0)*k),h=Math.round((y1-y0)*k);if(w<1||h<1)return;
           const px=cv.getContext('2d').getImageData(Math.round((x0-F.left)*k),Math.round((y0-F.top)*k),w,h).data;let n=0;for(let q=3;q<px.length;q+=4)if(px[q]>40)n++;
           if(n>12*k*k)add(`${at}: "${name(t)}" lies on the drawing of a figure`)})});
+      /* callout and rail blocks: inside the board, out of the Why? corner, headers clear of formulas */
+      const grps=[...bd.querySelectorAll('.ink .bgrp')];
+      grps.forEach(gr=>{const r=R(gr),hd=gr.querySelector('.bgrp-h'),nm=hd?name(hd):'block';
+        if(r.left<Bx.left-1||r.right>Bx.right+1||r.top<Bx.top-1||r.bottom>Bx.bottom+1)add(`${at}: block "${nm}" goes past the board edge`);
+        if(gr.classList.contains('callout')&&r.right>Bx.left+.9*Bx.width&&r.top<Bx.top+.1*Bx.height)add(`${at}: block "${nm}" sits in the Why? corner`);
+        if(hd){const hr=R(hd);ts.forEach((t,i)=>{const q=rs[i],ox=Math.min(hr.right,q.right)-Math.max(hr.left,q.left),oy=Math.min(hr.bottom,q.bottom)-Math.max(hr.top,q.top);
+          if(ox>3&&oy>2)add(`${at}: block label "${nm}" overlaps "${name(t)}"`)})}});
       /* figure labels on one another, under the buttons of the figure, and past the board */
       const fl=[...bd.querySelectorAll('.fig .fl>div')].filter(l=>l.textContent.trim()),fr=fl.map(R);
       fl.forEach((l,i)=>{const r=fr[i];if(r.left<Bx.left-1||r.right>Bx.right+1||r.top<Bx.top-1||r.bottom>Bx.bottom+1)add(`${at}: figure label "${name(l)}" goes past the board edge`);

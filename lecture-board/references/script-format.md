@@ -63,7 +63,12 @@ The board is 1600×1000, y down. Rows: `line N` (y = 90 + 95(N−1)), `t1`, `t2`
 - together:                                nested items below run at the same time
 - ^ ACTION                                 waits for the next ^ in Voice
 ```
-Options: colours `blue violet yellow dim ink red`; size `85%`; `fade`; duration `700ms`; `term KEY` (the written text opens a glossary card); `centered`.
+Options: colours `blue violet yellow dim ink red`; size `85%`; `fade`; duration `700ms`; `term KEY` (the written text opens a glossary card); `equation LABEL`; `centered`; `callout ["LABEL"]` and `rail ["LABEL"]` (visual blocks on `write`).
+
+**Blocks (`callout` and `rail`)**:
+- `callout "LABEL"` opens an accented block (left stripe, subtle tint, bold header `"LABEL"` above the formula); subsequent `write` actions with bare `callout` extend the same block downward until another block or an unblocked `write` closes it. Use for main claims, laws, principles, or formal statements (`"Theorem 19.40"`, `"Lemma 1"`, `"Key thesis"`).
+- `rail "LABEL"` opens a subordinated block (thin muted left vertical rule, slight indent, italic header `"LABEL"`); subsequent `write` actions with bare `rail` extend the vertical rule downward. Use for derivations, proofs, worked examples, or case analyses (`"Proof."`, `"Proof of Theorem [[eq:19.33]]."`, `"Derivation."`, `"Case 1."`).
+- Header text is formatted with the same inline markup as `Say:` (`$TeX$`, `[[eq:LABEL]]`, glossary links). A `callout "LABEL"` inside an open `rail` (such as a cited theorem inside a proof) keeps the `rail` open for later `rail` lines below it.
 
 **Rulers**: `ruler R in ROW · from X0 to X1`, then `tick ID on R at F "TeX"`, `ticks ID on R at F F …`, `span ID on R from F to G "TeX"` (F, G between 0 and 1).
 
