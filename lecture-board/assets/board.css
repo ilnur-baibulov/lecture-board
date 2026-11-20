@@ -53,7 +53,7 @@ body{font:18px/1.6 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-
 .ink .bgrp.callout{border-left:.26cqw solid var(--c1);background:color-mix(in srgb,var(--c1) 8%,transparent);border-radius:0 .45cqw .45cqw 0}
 .ink .bgrp.rail{border-left:.16cqw solid color-mix(in srgb,var(--dim) 60%,transparent)}
 .ink .bgrp-h{position:absolute;pointer-events:auto;white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;font-size:.56em;line-height:1.2}
-.ink .bgrp.callout>.bgrp-h{left:1cqw;top:.45cqw;color:var(--c1);font-weight:650;letter-spacing:.02em}
+.ink .bgrp.callout>.bgrp-h{left:1cqw;top:.38cqw;color:var(--c1);font-size:.68em;font-weight:650;letter-spacing:.02em}
 .ink .bgrp.rail>.bgrp-h{left:1.34cqw;top:0;color:var(--dim);font-style:italic;font-weight:500}
 .ink .bgrp-h .katex{font-size:1em;font-style:normal}
 .ink .bgrp-h [data-eq]:hover{color:var(--chalk)}

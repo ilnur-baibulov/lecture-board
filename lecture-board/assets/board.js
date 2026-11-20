@@ -260,7 +260,7 @@ function mount(S){
       const hd=grp.headEl,hr=hd?hd.getBoundingClientRect():null,hh=hr?hr.height/uy:0,hw=hr?hr.width/ux:0;
       const isC=grp.kind==='callout';
       const x=l0-(isC?20:24),x2=Math.max(r0,l0+hw)+(isC?28:12);
-      const y=t0-(hh?hh+(isC?16:8):(isC?12:6)),y2=b0+(isC?14:6);
+      const y=t0-(hh?hh+(isC?12:8):(isC?12:6)),y2=b0+(isC?14:6);
       Object.assign(grp.el.style,{left:x/W*100+'%',top:y/H*100+'%',width:(x2-x)/W*100+'%',height:(y2-y)/H*100+'%'})}
     const layoutGroups=()=>groups.forEach(layoutGroup);
     const gro=new ResizeObserver(layoutGroups);gro.observe(box);FIGLIVE.add(layoutGroups);
