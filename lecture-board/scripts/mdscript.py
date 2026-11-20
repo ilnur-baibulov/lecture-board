@@ -686,10 +686,26 @@ def voice_drift(say, voice):
     return []
 
 
+def _glossary_keys_in(text):
+    """Return glossary keys referenced via [[key]] or [[key|shown]], ignoring [[eq:...]] and [[slide:...]]."""
+    out = []
+    for m in re.finditer(r'\[\[([^|\]]+)(?:\|[^\]]+)?\]\]', text or ''):
+        k = m.group(1)
+        if not k.startswith(('eq:', 'slide:')):
+            out.append(k)
+    return out
+
+
 def check(S):
     """Problems a script can have regardless of wording: cue counts, unknown ids, empty steps."""
     out, live = [], set()
+    gloss = S.get('glossary', {})
     voiced = S.get('voice') != 'off' and (S.get('profile') != 'card' or S.get('voice') == 'on')
+
+    def check_gloss_text(text, where):
+        for k in _glossary_keys_in(text):
+            if k not in gloss:
+                out.append(f'{where}: unknown glossary term "{k}"')
 
     def walk(acts, where):
         for a in acts:
@@ -704,9 +720,17 @@ def check(S):
             if a.get('after') and a['after'] not in live: out.append(f'{where}: write {a.get("id")} next to unknown id "{a["after"]}"')
             for k in ('from', 'to'):
                 if isinstance(a.get(k), str) and a[k] not in live: out.append(f'{where}: {op} {a.get("id")} refers to unknown id "{a[k]}"')
+            if a.get('term') and a['term'] not in gloss:
+                out.append(f'{where}: unknown glossary term "{a["term"]}"')
+            if a.get('head'):
+                check_gloss_text(a['head'], where)
             if 'id' in a: live.add(a['id'])
 
     for n, sl in enumerate(S['slides'], 1):
+        for intro in sl.get('intro', []):
+            check_gloss_text(intro, f'{n}.intro')
+        if sl.get('why'):
+            check_gloss_text(sl['why'], f'{n}.why')
         for m, st in enumerate(sl['steps'], 1):
             where = f'{n}.{m}'
             v = st.get('voice', '').count('^')
@@ -714,6 +738,7 @@ def check(S):
             if v != c: out.append(f'{where}: Voice has {v} ^ but Board has {c}')
             most = 2 if S.get('profile', S.get('genre')) == 'card' else 1
             for say in [st['say']] + [v['say'] for v in st.get('sayIf', [])]:
+                check_gloss_text(say, where)
                 # a sentence ends at . ! ? followed by a capital letter or the end; so abbreviations (т. е., e.g., cf.)
                 # do not end one, nor does the body of a <<label|reason>> note; a formula counts as a small letter
                 bare = re.sub(r'<<([^|]+?)\|[\s\S]+?>>', r'\1', say).replace('&nbsp;', ' ')
@@ -721,6 +746,12 @@ def check(S):
                 if len(re.findall(r'[.!?](?=\s+[A-ZА-ЯЁ«"(]|\s*$)', bare)) > most:
                     out.append(f'{where}: more than {most} sentence(s) in Say (one step, one thought)'); break
             walk(st.get('do', []), where)
+            for kind in ('why', 'caution'):
+                if st.get(kind): check_gloss_text(st[kind]['text'], where)
+            if q := st.get('q'):
+                check_gloss_text(q.get('hint', ''), where)
+                check_gloss_text(q.get('then', ''), where)
+                for wr in q.get('wrong', []): check_gloss_text(wr.get('say', ''), where)
             if voiced and st.get('voice'):
                 said = st['voice']
                 if re.search(r'[\\{}_]|\bof \d', said.replace('^', '')):   # '^' left in a Voice is a cue
@@ -734,9 +765,81 @@ def check(S):
     return out
 
 
-def warnings(S):
-    """Advisory editorial checks for talks: consecutive slides lacking pointers, overlong notes."""
+def _glossary_warnings(S):
+    """Warn on unused glossary entries and glossary terms used unlinked in Say before their first link."""
+    gloss = S.get('glossary', {})
+    if not gloss:
+        return []
+    first_link, first_plain = {}, {}
+
+    def record_links(text, pos):
+        for k in _glossary_keys_in(text):
+            if k in gloss and k not in first_link:
+                first_link[k] = pos
+
+    def record_acts(acts, pos):
+        for a in acts:
+            if a['op'] == 'par':
+                record_acts(a['actions'], pos)
+            else:
+                if a.get('term') in gloss and a['term'] not in first_link:
+                    first_link[a['term']] = pos
+                if a.get('head'):
+                    record_links(a['head'], pos)
+
+    pats = {}
+    for k, info in gloss.items():
+        term = info['term'].strip()
+        if len(re.sub(r'[^A-Za-zА-Яа-яЁё]', '', term)) < 4:
+            continue
+        suf = 's?' if term.isascii() and term[-1].isalpha() else ''
+        pats[k] = re.compile(r'(?<!\w)' + re.escape(term) + suf + r'(?!\w)', re.I)
+
+    for n, sl in enumerate(S['slides'], 1):
+        intro_pos = (n, 0, f'{n}.intro')
+        for intro in sl.get('intro', []):
+            record_links(intro, intro_pos)
+            plain = re.sub(r'\$[^$]*\$', ' ', re.sub(r'\[\[[^\]]+\]\]', ' ', intro))
+            for k, pat in pats.items():
+                if k not in first_plain and pat.search(plain):
+                    first_plain[k] = intro_pos
+        if sl.get('why'):
+            record_links(sl['why'], (n, 0, f'{n}.why'))
+        for m, st in enumerate(sl['steps'], 1):
+            pos = (n, m, f'{n}.{m}')
+            says = [st.get('say', '')] + [v.get('say', '') for v in st.get('sayIf', [])]
+            for s in says:
+                record_links(s, pos)
+            record_acts(st.get('do', []), pos)
+            for kind in ('why', 'caution'):
+                if st.get(kind):
+                    record_links(st[kind]['text'], pos)
+            if q := st.get('q'):
+                record_links(q.get('hint', ''), pos)
+                record_links(q.get('then', ''), pos)
+                for wr in q.get('wrong', []):
+                    record_links(wr.get('say', ''), pos)
+            for s in says:
+                plain = re.sub(r'\$[^$]*\$', ' ', re.sub(r'\[\[[^\]]+\]\]', ' ', s))
+                for k, pat in pats.items():
+                    if k not in first_plain and pat.search(plain):
+                        first_plain[k] = pos
+
     out = []
+    for k, info in gloss.items():
+        if k not in first_link:
+            out.append(f'warning: glossary term "{k}" ({info["term"]}) is never linked')
+        elif k in first_plain and first_plain[k][:2] < first_link[k][:2]:
+            out.append(
+                f'warning: glossary term "{k}" ({info["term"]}) appears unlinked at {first_plain[k][2]} '
+                f'before its first link at {first_link[k][2]}'
+            )
+    return out
+
+
+def warnings(S):
+    """Advisory editorial checks: glossary hygiene, consecutive slides lacking pointers, overlong notes."""
+    out = _glossary_warnings(S)
     if S.get('profile', S.get('genre')) == 'card':
         return out
     no_pm_run = []

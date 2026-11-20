@@ -51,5 +51,5 @@ How a built page behaves. Read this before changing `assets/board.js` or `assets
 
 ## Changing the engine
 - A built page is self-contained (engine, KaTeX and figures inside), so a change of the engine never breaks a page already built; it can only break the next build of an old script.
-- After an engine change, rebuild and run `scripts/lint.py` plus the browser regressions (`tests/player.py`, `tests/equations.py`, `tests/blocks.py`) on the test fixtures in `tests/fixtures/`. When returning to an old talk, rebuild and lint it before editing it.
+- After an engine or script-checker change, rebuild and run `scripts/lint.py`, the stdlib unit tests (`tests/glossary.py`), and the browser regressions (`tests/player.py`, `tests/equations.py`, `tests/blocks.py`) on the test fixtures in `tests/fixtures/`. When returning to an old talk, rebuild and lint it before editing it.
 - Figure kinds live in each talk's `*.fig.js`. When a second talk needs a kind, copy it from the first and note it in `script-format.md`, so the library of kinds grows in one place.

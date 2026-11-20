@@ -79,7 +79,7 @@ Rules for the content of a lecture-board talk. They were agreed with a working m
 - The plan logs each question in one line: the slide, the question in the user's words, where the answer went.
 
 ## The editor pass
-It runs after the first draft and after every remark of the user. The remark becomes a rule, is applied to the whole script and not only where the user pointed, and Say, Voice and Board are kept consistent. Changes are proposed as a list "was → becomes" and go in after the user agrees, unless they asked to apply them at once. A remark about the format rather than this talk is a candidate for this file or `figures.md`.
+It runs after the first draft and after every remark of the user. Before presenting a finished draft (or after a major rewrite), run one cold read-through in a fresh context — reading only the finished script from slide 1 to the end, without the source text or drafting history — to break author blindness and flag any term, symbol, reference, or logical step that relies on something not yet introduced in the talk itself. The remark becomes a rule, is applied to the whole script and not only where the user pointed, and Say, Voice and Board are kept consistent. Changes are proposed as a list "was → becomes" and go in after the user agrees, unless they asked to apply them at once. A remark about the format rather than this talk is a candidate for this file or `figures.md`.
 
 Questions the pass asks of every step:
 - Is every formula the voice names on the board at that moment, or highlighted there?
@@ -95,7 +95,7 @@ Questions the pass asks of every step:
 - Does each Why? open with the answer to its own question, add what the board leaves out, never hide a premise essential to the main line, stay focused without mini-essay digressions, and attach strictly to the exact step `N.M` that triggers it?
 - Does the board use `point` (1–3 per slide), `mark`, and `^` cues where the voice refers back to earlier formulas or figures?
 - Are deliberate departures from the source (changed order, proofs, notation, or local improvements) summarized briefly in the plan and reported clearly to the user?
-- Is every word that is not a standard term defined before it is used, and is no metaphor standing in for a definition?
+- Is every term, symbol, or domain jargon not basic to a reader from a nearby field defined at its first use in the talk itself (rather than assumed from the source, a later section, or background knowledge), with no metaphor standing in for a definition?
 - Is each slide title understandable before the slide?
 - Does each sentence pass `writing.md` (one reading, named referents, no invented phrases, no colon glue)?
 - Is every claim proved, on the board or in a Why?, and does nothing refer to texts outside the talk?
